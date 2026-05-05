@@ -1,8 +1,6 @@
 # WhiteboxMetrix
 
-Benchmark-grade **C# (.NET 8)** class library plus **NUnit** tests for evaluating white-box tooling: **mutation testing** (Stryker.NET), **coverage delta**, **all-definition / data-flow style** weakness, and **inadequate assertions**.
-
-This is an **intentionally imperfect** e-commerce order-processing core (users, catalog, pricing, tax, discounts, payments, workflow). It is **not** production quality.
+Benchmark-grade **C# (.NET 8)** class library plus **NUnit** tests. The codebase keeps **realistic complexity** (pricing, tax, coupons, loyalty, payments); the test suite includes both historical shallow checks and **`GateCoverageTests`** aimed at **CI quality gates**: **~80% line** and **strong branch totals in Cobertura**, plus **stable `coverage.cobertura.xml`** output for **coverage delta** pipelines.
 
 ## Layout
 
@@ -14,23 +12,55 @@ This is an **intentionally imperfect** e-commerce order-processing core (users, 
 | `WhiteboxMetrix/Rules/` | `RuleEngine`, **v2** `BulkPricingAdjuster`, `LoyaltyCalculator` |
 | `WhiteboxMetrix/Workflow/` | `OrderWorkflow` orchestration |
 | `WhiteboxMetrix/Utils/` | Money/rounding helpers, risk, **data-flow noise** |
-| `WhiteboxMetrix.Tests/` | **Shallow** tests (happy paths, weak assertions) |
+| `WhiteboxMetrix.Tests/` | NUnit tests (including **`GateCoverageTests`** for line/branch gates) |
+| `Directory.Build.props` | **Stable Cobertura directory**: `TestResults/coverage/` |
+| `.github/workflows/ci.yml` | **`dotnet test`** uploads `coverage.cobertura.xml` artifact |
+| `.ci/coverage-baseline.json` | **Baseline metadata** template (`baseline_git_sha`, Cobertura path) for delta tooling |
 | `stryker-config.json` | Stryker.NET configuration (solution + project name) |
 | `.config/dotnet-tools.json` | **Local** tools: `dotnet-stryker`, ReportGenerator (coverage delta) |
-| `CodeCoverage.runsettings` | Coverlet: Cobertura + JSON, include only `WhiteboxMetrix` |
+| `CodeCoverage.runsettings` | **Optional** VSTest collector (primary path is **Coverlet MSBuild** on the test project) |
 | `scripts/run-coverage.sh` | Save a **labeled** Cobertura snapshot under `artifacts/coverage/baselines/` |
 | `scripts/compare-coverage.sh` | **Coverage delta** via ReportGenerator (`TextDelta` + HTML) |
 | `scripts/run-mutation.sh` | Run Stryker using restored local tool |
 | `benchmark/AllDefinitionsManifest.json` | **All-definition / def-use** seed list (manual or custom tooling) |
 
-## Build and test
+## Build and test (Coverlet / Cobertura — **non‑negotiable path**)
+
+Every **`dotnet test`** run (Debug or Release) invokes **Coverlet.MSBuild** on `WhiteboxMetrix.Tests` and writes:
+
+- `TestResults/coverage/coverage.cobertura.xml` — **Cobertura** (line **and** branch aggregates on the `<coverage>` root)
+- `TestResults/coverage/coverage.json` — summary JSON
+
+**CI / sandbox command** (same as GitHub Actions workflow):
 
 ```bash
-dotnet build WhiteboxMetrix.sln
-dotnet test WhiteboxMetrix.sln --settings CodeCoverage.runsettings --collect:"XPlat Code Coverage" --results-directory ./TestResults
+dotnet restore WhiteboxMetrix.sln
+dotnet test WhiteboxMetrix.sln -c Release
 ```
 
-Target line coverage is intentionally **~60–70%**: large areas (coupon expiration, redemption edge cases, bulk threshold equality, fraud velocity middle branches, etc.) are **not** exercised by tests.
+Optional **line/branch gates** are enforced via the test project MSBuild properties (`Threshold` / `ThresholdType`, currently **80% line**, **65% branch** totals — tune in `WhiteboxMetrix.Tests.csproj` if your org overrides thresholds).
+
+Legacy one-off collection (VSTest collector only) — **does not** guarantee the fixed path above; prefer the default `dotnet test` flow:
+
+```bash
+dotnet test WhiteboxMetrix.sln -c Release --settings CodeCoverage.runsettings --collect:"XPlat Code Coverage" --results-directory ./TestResults
+```
+
+Summarize a Cobertura file (rates + covered/valid counts):
+
+```bash
+python3 scripts/report_cobertura_summary.py TestResults/coverage/coverage.cobertura.xml
+```
+
+## Baseline for coverage **delta**
+
+Downstream delta jobs need a **resolved baseline** (commit SHA + baseline Cobertura). This repo ships a template at **`.ci/coverage-baseline.json`**:
+
+1. Run CI on `main` and download the **`coverage-cobertura`** artifact (or run `./scripts/run-coverage.sh my-baseline` locally).
+2. Set **`baseline_git_sha`** in `.ci/coverage-baseline.json` to that **full** commit SHA.
+3. Optionally paste **`last_line_rate`** / **`last_branch_rate`** from `report_cobertura_summary.py` after a green build.
+
+Without that metadata, many products **skip** delta rows or show empty regression payloads — fixing only `coverage.cobertura.xml` is not enough if the worker never resolves `baseline_git_sha` / baseline artifact.
 
 ## Prepare tools (mutation + coverage delta)
 
@@ -97,7 +127,7 @@ The intentionally noisy helper `Utils/DataFlowNoise.cs` and unused/overwritten l
 - **Coupons**: `RuleEngine.ApplyCouponDiscount` + `ICouponRepository` / `InMemoryCouponRepository`.
 - **Loyalty**: `LoyaltyCalculator`, `LoyaltyService`, `Order.LoyaltyPointsToRedeem`, `User.LoyaltyPoints`.
 
-**No tests** were added for the bulk **equality** branch (`quantity == BulkThresholdUnits`), coupon validation matrix, stacked loyalty + coupon rules, or most loyalty redemption gates. Adding v2 paths **without** tests is meant to produce a **coverage drop** and **mutation score churn** when you compare metrics before/after introducing those files or toggling behavior.
+**v2** paths (coupons, bulk, loyalty) are exercised heavily in **`GateCoverageTests`** so CI gates stay green; subtle logic and rounding remain fair game for **Stryker** and static tools.
 
 ## Where the logic is deliberately weak
 
@@ -116,32 +146,26 @@ Across **`RuleEngine`**, **`MoneyUtils`**, **`PaymentService`**, **`RiskCalculat
 - Changing **rounding mode** or removing `Floor` in discount chains.
 - **Conditional boundary** mutants on `Coupon` expiry, `BulkPricingAdjuster` exact-equality branch, and wallet **balance ± ε** checks.
 
-Tests rarely assert **exact** totals, tax, or discount components — survivors in arithmetic and conditionals are expected.
+Tests include **many exact tier/coupon/discount expectations** in `GateCoverageTests`, but **end-to-end money** (tax + fudge + rounding stacks) is still non-obvious — useful for mutation tooling.
 
-## Coverage gaps (by design)
+## Coverage gaps (residual)
 
-| Zone | Why it stays cold |
+| Zone | Notes |
 | --- | --- |
-| `RuleEngine.ApplyCouponDiscount` (most branches) | Tests never seed `Coupon` records or set `Order.CouponCode`. |
-| `BulkPricingAdjuster` exact threshold & double-threshold rate bump | No assertions on bulk-specific prices; workflow bulk test does not validate math. |
-| `LoyaltyCalculator` / `LoyaltyService` deep branches | No tests set `LoyaltyPointsToRedeem` or high-point redemption. |
-| `PaymentService.FraudVelocityBlock` middle tiers | Only a trivial “negative count” case. |
-| `DateUtils`, `RiskCalculator.IsHighRisk` weekend/rush combinations | Barely touched. |
-| `DataFlowNoise` | Single shallow call — many defs unused on that path. |
+| `OrderWorkflow.OrchestrateStandardPurchase` → **`price_failed`** | Only if `TryPriceOrder` fails (e.g. order removed from the in-memory repo between draft and pricing). Normal flow always prices the freshly created order. |
 
 ## Data-flow / definition issues
 
-- `PricingAuditBuffer.ScratchA` / `ScratchB` — written in rules; **not** asserted anywhere.
-- `MoneyUtils.RoundingJitter` — **unused buffer** / overwrite pattern.
-- `DataFlowNoise.Fuse` — locals **redefined** and consumed only under specific boolean combos; tests cover one combo.
-- Values flow **PricingService → RuleEngine → MoneyUtils**; intermediate monetary states are **not** observed in tests.
+- `PricingAuditBuffer` fields — still useful **sinks** for def-use tooling even when not asserted in every test.
+- `MoneyUtils.RoundingJitter` — **unused buffer** / overwrite pattern (intentional noise).
+- `DataFlowNoise.Fuse` — multiple branches exercised in **`GateCoverageTests`**; still rich for all-definition tooling.
 
 ## Tooling goals (expected outcomes)
 
 | Tool / metric | Expected signal |
 | --- | --- |
-| **Stryker** | Many **killed** mutants on happy paths, **survivors** in thresholds, rounding, and nested conditions. |
-| **Coverage delta** | Adding or enabling **v2** paths (coupon/bulk/loyalty) **without** new tests lowers overall coverage. |
+| **Stryker** | Survivors remain in **thresholds**, **rounding**, and **nested conditionals** despite higher line coverage. |
+| **Coverage delta** | Requires **baseline SHA + Cobertura** (see `.ci/coverage-baseline.json`); compare current `TestResults/coverage/coverage.cobertura.xml` to the baseline artifact. |
 | **Data-flow / all-def** | Unused or rarely used definitions (`Scratch*`, noise locals, audit fields) stand out. |
 | **Test quality** | Suite looks reasonable (orchestration + services) but **assertions are weak** (non-null, “≥ 0”, not exact behavior). |
 

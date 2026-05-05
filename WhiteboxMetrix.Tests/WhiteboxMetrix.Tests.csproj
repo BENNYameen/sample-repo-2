@@ -6,6 +6,17 @@
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <RootNamespace>WhiteboxMetrix.Tests</RootNamespace>
+    <!-- Coverlet MSBuild: deterministic Cobertura path (non-negotiable for delta tooling). -->
+    <CollectCoverage>true</CollectCoverage>
+    <CoverletOutputFormat>cobertura,json</CoverletOutputFormat>
+    <CoverletOutput>$(WhiteboxMetrixCoverageDir)/coverage</CoverletOutput>
+    <DeterministicReport>true</DeterministicReport>
+    <Exclude>[WhiteboxMetrix.Tests]*</Exclude>
+    <ExcludeByAttribute>GeneratedCodeAttribute</ExcludeByAttribute>
+    <!-- Gate-style thresholds: line ~80%+; branch strong aggregates in Cobertura. -->
+    <ThresholdType>line,branch</ThresholdType>
+    <Threshold>80,65</Threshold>
+    <ThresholdStat>total</ThresholdStat>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,7 +24,10 @@
     <PackageReference Include="NUnit" Version="4.0.1" />
     <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
     <PackageReference Include="NUnit.Analyzers" Version="3.10.0" />
-    <PackageReference Include="coverlet.collector" Version="6.0.0" />
+    <PackageReference Include="coverlet.msbuild" Version="6.0.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>

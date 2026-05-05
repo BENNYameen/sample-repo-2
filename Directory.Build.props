@@ -1,0 +1,7 @@
+<Project>
+  <!-- Stable Cobertura path for coverage delta pipelines (same every run). -->
+  <PropertyGroup>
+    <WhiteboxMetrixCoverageDir>$(MSBuildThisFileDirectory)TestResults/coverage</WhiteboxMetrixCoverageDir>
+    <WhiteboxMetrixCoberturaPath>$(WhiteboxMetrixCoverageDir)/coverage.cobertura.xml</WhiteboxMetrixCoberturaPath>
+  </PropertyGroup>
+</Project>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Coverlet collector: stable formats for coverage delta (Cobertura + JSON summaries). -->
+<!-- Optional VSTest collector. Primary Cobertura for CI: Coverlet.MSBuild on WhiteboxMetrix.Tests → TestResults/coverage/coverage.cobertura.xml -->
 <RunSettings>
   <RunConfiguration>
     <TreatNoTestsAsError>false</TreatNoTestsAsError>

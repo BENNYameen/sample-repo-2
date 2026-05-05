@@ -1,6 +1,4 @@
 using WhiteboxMetrix.Models;
-using WhiteboxMetrix.Repositories;
-using WhiteboxMetrix.Utils;
 
 namespace WhiteboxMetrix.Services;
 

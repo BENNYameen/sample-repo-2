@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "description": "Coverage delta baseline. Set baseline_git_sha to a full commit on main after a green CI run so workers can resolve current vs baseline Cobertura. Optionally copy last_line_rate / last_branch_rate from CI logs (report_cobertura_summary.py output).",
+  "baseline_ref": "main",
+  "baseline_git_sha": "",
+  "cobertura_relative_path": "TestResults/coverage/coverage.cobertura.xml",
+  "last_line_rate": null,
+  "last_branch_rate": null,
+  "recommended_gate_line_rate_min": 0.8,
+  "recommended_gate_branch_rate_min": 0.65
+}

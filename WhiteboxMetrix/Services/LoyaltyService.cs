@@ -1,6 +1,5 @@
 using WhiteboxMetrix.Models;
 using WhiteboxMetrix.Rules;
-using WhiteboxMetrix.Utils;
 
 namespace WhiteboxMetrix.Services;
 

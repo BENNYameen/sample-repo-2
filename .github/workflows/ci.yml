@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Restore
+        run: dotnet restore WhiteboxMetrix.sln
+
+      - name: Test (Coverlet MSBuild → TestResults/coverage/coverage.cobertura.xml)
+        run: dotnet test WhiteboxMetrix.sln -c Release --no-restore -v minimal
+
+      - name: Verify Cobertura exists (required for coverage delta)
+        run: |
+          set -euo pipefail
+          f="TestResults/coverage/coverage.cobertura.xml"
+          test -f "$f"
+          echo "Cobertura: $f"
+          python3 scripts/report_cobertura_summary.py "$f"
+
+      - name: Upload Cobertura
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-cobertura
+          path: TestResults/coverage/coverage.cobertura.xml
+          if-no-files-found: error

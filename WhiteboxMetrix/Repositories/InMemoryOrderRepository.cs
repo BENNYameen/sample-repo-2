@@ -13,4 +13,7 @@ public sealed class InMemoryOrderRepository : IOrderRepository
     }
 
     public void Save(Order order) => _orders[order.Id] = order;
+
+    /// <summary>Test / orchestration hook — in-memory store only.</summary>
+    public bool Remove(string orderId) => _orders.Remove(orderId);
 }

@@ -56,4 +56,30 @@ public sealed class OrderWorkflowTests
         var r = _fx.Workflow.OrchestrateBulkFirst("u2", new[] { ("p9", 11) }, DateTime.UtcNow, 0);
         Assert.That(r, Is.Not.EqualTo("no_user"));
     }
+
+    [Test]
+    public void Orchestrate_pay_fail_when_card_requires_fingerprint()
+    {
+        var u = new User
+        {
+            Id = "pf",
+            IsVerified = true,
+            Tier = UserTier.Standard,
+            AccountBalance = 0m,
+            CreatedUtc = DateTime.UtcNow.AddYears(-1)
+        };
+        _fx.Users.Save(u);
+        _fx.Products.Save(new Product { Id = "pp", BasePrice = 10m, StockQuantity = 50, IsDigital = true });
+        var pay = new PaymentRequest { Method = PaymentMethod.Card, AttemptCount = 1 };
+        var r = _fx.Workflow.OrchestrateStandardPurchase(
+            "pf",
+            new[] { ("pp", 1) },
+            pay,
+            DateTime.UtcNow,
+            weekend: false,
+            rushHour: false,
+            userCouponUseCount: 0,
+            paymentsLastHour: 0);
+        Assert.That(r, Is.EqualTo("pay_fail"));
+    }
 }
