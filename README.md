@@ -16,31 +16,78 @@ This is an **intentionally imperfect** e-commerce order-processing core (users, 
 | `WhiteboxMetrix/Utils/` | Money/rounding helpers, risk, **data-flow noise** |
 | `WhiteboxMetrix.Tests/` | **Shallow** tests (happy paths, weak assertions) |
 | `stryker-config.json` | Stryker.NET configuration (solution + project name) |
+| `.config/dotnet-tools.json` | **Local** tools: `dotnet-stryker`, ReportGenerator (coverage delta) |
+| `CodeCoverage.runsettings` | Coverlet: Cobertura + JSON, include only `WhiteboxMetrix` |
+| `scripts/run-coverage.sh` | Save a **labeled** Cobertura snapshot under `artifacts/coverage/baselines/` |
+| `scripts/compare-coverage.sh` | **Coverage delta** via ReportGenerator (`TextDelta` + HTML) |
+| `scripts/run-mutation.sh` | Run Stryker using restored local tool |
+| `benchmark/AllDefinitionsManifest.json` | **All-definition / def-use** seed list (manual or custom tooling) |
 
 ## Build and test
 
 ```bash
 dotnet build WhiteboxMetrix.sln
-dotnet test WhiteboxMetrix.sln --collect:"XPlat Code Coverage"
+dotnet test WhiteboxMetrix.sln --settings CodeCoverage.runsettings --collect:"XPlat Code Coverage" --results-directory ./TestResults
 ```
 
 Target line coverage is intentionally **~60–70%**: large areas (coupon expiration, redemption edge cases, bulk threshold equality, fraud velocity middle branches, etc.) are **not** exercised by tests.
 
-## Stryker.NET
+## Prepare tools (mutation + coverage delta)
 
-Install the tool (once per machine or via `dotnet tool manifest`):
-
-```bash
-dotnet tool install -g dotnet-stryker
-```
-
-From the **repository root** (so paths in `stryker-config.json` resolve):
+Restore **repository-local** dotnet tools (no global install required):
 
 ```bash
-dotnet stryker --config-file stryker-config.json
+dotnet tool restore
 ```
 
-Stryker expects the `"project"` value to be the **.csproj file name** as referenced by the test project (`WhiteboxMetrix.csproj`), and `"solution"` for the `.sln`. If you relocate the config file, adjust those paths.
+## Mutation testing (Stryker.NET)
+
+From the **repository root**:
+
+```bash
+./scripts/run-mutation.sh
+```
+
+Or directly:
+
+```bash
+dotnet tool run dotnet-stryker -- --config-file stryker-config.json
+```
+
+Stryker expects the `"project"` value to be the **.csproj file name** as referenced by the test project (`WhiteboxMetrix.csproj`), and `"solution"` for the `.sln`. HTML and logs land under `StrykerOutput/` (gitignored). Adjust `stryker-config.json` for reporters, thresholds, and `mutate` globs.
+
+## Coverage snapshots and **coverage delta**
+
+1. On a **baseline** commit or tag (e.g. before v2 features):
+
+   ```bash
+   ./scripts/run-coverage.sh baseline-v1
+   ```
+
+2. After code changes:
+
+   ```bash
+   ./scripts/run-coverage.sh after-change
+   ```
+
+3. Compare Cobertura files (ReportGenerator **TextDelta** + HTML):
+
+   ```bash
+   ./scripts/compare-coverage.sh \
+     artifacts/coverage/baselines/coverage-baseline-v1.cobertura.xml \
+     artifacts/coverage/baselines/coverage-after-change.cobertura.xml
+   ```
+
+   Open `artifacts/coverage/delta-report/index.html` for a visual delta. Dropping overall coverage when adding **v2** paths without tests is the expected benchmark signal.
+
+## All-definition (def–use) evaluation
+
+Standard **line/branch coverage** does not measure **all-definition coverage** (every definition must be reached by a use on some execution path). This repo provides a structured seed list:
+
+- `benchmark/AllDefinitionsManifest.json` — definitions, temps, and sinks that are intentionally weakly observed (audit buffers, redefined locals, coupon-only paths).
+- Pair with your **data-flow / def-use** analyzer, research prototype, or a manual checklist; update the manifest as you add new “traps” in code.
+
+The intentionally noisy helper `Utils/DataFlowNoise.cs` and unused/overwritten locals in `MoneyUtils` exist partly to give static and dynamic tools something to report beyond line hits.
 
 ## Version 2 (same branch): coupons, bulk, loyalty
 

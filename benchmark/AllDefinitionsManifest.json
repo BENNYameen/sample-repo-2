@@ -1,0 +1,120 @@
+{
+  "$schema": "./all-definitions-manifest.schema.json",
+  "version": 1,
+  "description": "Seeds for all-definition / def-use evaluation. Each entry names a definition site (or propagated temp) that is hard for line coverage alone to justify; pair with a def-use tool or manual oracle.",
+  "assembly": "WhiteboxMetrix",
+  "definitions": [
+    {
+      "id": "audit-scratch-a",
+      "path": "WhiteboxMetrix/Utils/PricingAuditBuffer.cs",
+      "symbol": "ScratchA",
+      "role": "definition-updated",
+      "expectation": "Tests do not assert reads of audit fields."
+    },
+    {
+      "id": "audit-scratch-b",
+      "path": "WhiteboxMetrix/Utils/PricingAuditBuffer.cs",
+      "symbol": "ScratchB",
+      "role": "definition-updated",
+      "expectation": "Propagates from tier discount path only."
+    },
+    {
+      "id": "audit-last-taxable-base",
+      "path": "WhiteboxMetrix/Utils/PricingAuditBuffer.cs",
+      "symbol": "LastTaxableBase",
+      "role": "definition-updated",
+      "expectation": "Set in tax computation; no external validation."
+    },
+    {
+      "id": "round-display-temp-double",
+      "path": "WhiteboxMetrix/Utils/MoneyUtils.cs",
+      "symbol": "RoundDisplay.step2 / temp double",
+      "role": "temp-definition",
+      "expectation": "Floating promotion affects rounding; weak test."
+    },
+    {
+      "id": "rounding-jitter-unused-buffer",
+      "path": "WhiteboxMetrix/Utils/MoneyUtils.cs",
+      "symbol": "RoundingJitter.unusedBuffer",
+      "role": "dead-or-weak-def",
+      "expectation": "Overwritten; data-flow tools should flag."
+    },
+    {
+      "id": "chain-discount-intermediate",
+      "path": "WhiteboxMetrix/Utils/MoneyUtils.cs",
+      "symbol": "ChainDiscount.a,b,c",
+      "role": "multi-def-chain",
+      "expectation": "Arithmetic chain + Floor; no per-step assertions."
+    },
+    {
+      "id": "buggy-threshold-branch",
+      "path": "WhiteboxMetrix/Utils/MoneyUtils.cs",
+      "symbol": "BuggyThresholdCompare",
+      "role": "predicate-sensitive-def",
+      "expectation": ">, == boundaries; mutation and all-def sensitive."
+    },
+    {
+      "id": "dataflow-fuse-y-overwrite",
+      "path": "WhiteboxMetrix/Utils/DataFlowNoise.cs",
+      "symbol": "Fuse.y",
+      "role": "redefinition",
+      "expectation": "Single shallow test misses most def-use pairs."
+    },
+    {
+      "id": "dataflow-fuse-z",
+      "path": "WhiteboxMetrix/Utils/DataFlowNoise.cs",
+      "symbol": "Fuse.z",
+      "role": "branch-local-def",
+      "expectation": "Only when flag && !other."
+    },
+    {
+      "id": "ruleengine-tier-rate",
+      "path": "WhiteboxMetrix/Rules/RuleEngine.cs",
+      "symbol": "ApplyTierDiscount.rate",
+      "role": "multi-path-def",
+      "expectation": "Deep nesting; Standard path asserted weakly."
+    },
+    {
+      "id": "ruleengine-coupon-discount",
+      "path": "WhiteboxMetrix/Rules/RuleEngine.cs",
+      "symbol": "ApplyCouponDiscount.d",
+      "role": "branch-local-def",
+      "expectation": "Most coupon branches never executed in tests."
+    },
+    {
+      "id": "bulk-at-threshold",
+      "path": "WhiteboxMetrix/Rules/BulkPricingAdjuster.cs",
+      "symbol": "quantity == BulkThresholdUnits",
+      "role": "boundary-def-of-discount",
+      "expectation": "Equality branch; easy def-use gap."
+    },
+    {
+      "id": "loyalty-redeem-raw",
+      "path": "WhiteboxMetrix/Rules/LoyaltyCalculator.cs",
+      "symbol": "RedeemToCurrency.raw",
+      "role": "temp-definition",
+      "expectation": "Points bands; untested in suite."
+    },
+    {
+      "id": "payment-wallet-borderline",
+      "path": "WhiteboxMetrix/Services/PaymentService.cs",
+      "symbol": "Authorize wallet branch temp",
+      "role": "predicate-sensitive-def",
+      "expectation": "Borderline balance tolerance."
+    },
+    {
+      "id": "order-internal-note-loyalty",
+      "path": "WhiteboxMetrix/Services/OrderService.cs",
+      "symbol": "TryPriceOrder.InternalNote",
+      "role": "weak-sink",
+      "expectation": "Set when loyalty rejected; not asserted."
+    },
+    {
+      "id": "product-dynamic-months",
+      "path": "WhiteboxMetrix/Services/ProductService.cs",
+      "symbol": "GetDynamicUnitPrice.months",
+      "role": "intermediate-def",
+      "expectation": "Flows into tier pricing; tests don't fix expectations."
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/all-definitions-manifest.schema.json",
+  "title": "AllDefinitionsManifest",
+  "type": "object",
+  "required": ["version", "definitions"],
+  "properties": {
+    "version": { "type": "integer" },
+    "description": { "type": "string" },
+    "assembly": { "type": "string" },
+    "definitions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "path", "symbol", "role"],
+        "properties": {
+          "id": { "type": "string" },
+          "path": { "type": "string" },
+          "symbol": { "type": "string" },
+          "role": { "type": "string" },
+          "expectation": { "type": "string" }
+        }
+      }
+    }
+  }
+}
