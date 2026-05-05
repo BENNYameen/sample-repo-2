@@ -1,0 +1,14 @@
+{
+  "stryker-config": {
+    "solution": "WhiteboxMetrix.sln",
+    "project": "WhiteboxMetrix.csproj",
+    "reporters": ["html", "progress", "cleartext"],
+    "mutate": ["**/*.cs"],
+    "concurrency": 4,
+    "thresholds": {
+      "high": 80,
+      "low": 60,
+      "break": 0
+    }
+  }
+}
