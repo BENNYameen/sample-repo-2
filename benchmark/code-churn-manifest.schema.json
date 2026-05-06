@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/code-churn-manifest.schema.json",
+  "title": "CodeChurnManifest",
+  "type": "object",
+  "required": ["version", "hotspots"],
+  "properties": {
+    "version": { "type": "integer" },
+    "description": { "type": "string" },
+    "hotspots": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "rationale"],
+        "properties": {
+          "path": { "type": "string" },
+          "subsystem": { "type": "string" },
+          "rationale": { "type": "string" },
+          "allUsesAnchorIds": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    }
+  }
+}

@@ -21,6 +21,9 @@ jobs:
       - name: Restore
         run: dotnet restore WhiteboxMetrix.sln
 
+      - name: Validate benchmark manifests (all-uses + churn contracts)
+        run: python3 scripts/validate_benchmark_manifests.py
+
       - name: Test (Coverlet MSBuild → TestResults/coverage/coverage.cobertura.xml)
         run: dotnet test WhiteboxMetrix.sln -c Release --no-restore -v minimal
 

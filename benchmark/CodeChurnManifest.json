@@ -1,0 +1,37 @@
+{
+  "$schema": "./code-churn-manifest.schema.json",
+  "version": 1,
+  "description": "Stable list of churn-prone paths for coupling git-history churn metrics with white-box tooling. Pair with churn stats (commits/lines/files per window) keyed by path prefixes.",
+  "hotspots": [
+    {
+      "path": "WhiteboxMetrix/Rules/RuleEngine.cs",
+      "subsystem": "pricing-rules",
+      "rationale": "Tier, tax, and coupon nests change often; correlate high churn here with weaker all-uses manifests.",
+      "allUsesAnchorIds": ["ruleengine-tier-rate", "ruleengine-coupon-discount"]
+    },
+    {
+      "path": "WhiteboxMetrix/Services/PaymentService.cs",
+      "subsystem": "payments",
+      "rationale": "Authorization branches (wallet tolerance, throttle) are churn magnets for regressions.",
+      "allUsesAnchorIds": ["payment-wallet-borderline"]
+    },
+    {
+      "path": "WhiteboxMetrix/Utils/DataFlowNoise.cs",
+      "subsystem": "data-flow-benchmark",
+      "rationale": "Intentionally volatile control flow for def-use / all-uses tooling studies.",
+      "allUsesAnchorIds": ["dataflow-fuse-y-overwrite", "dataflow-fuse-z"]
+    },
+    {
+      "path": "WhiteboxMetrix/Services/ProductService.cs",
+      "subsystem": "catalog",
+      "rationale": "Dynamic pricing merges schedule hints and scarcity; churn often skips tests.",
+      "allUsesAnchorIds": ["product-dynamic-months"]
+    },
+    {
+      "path": "WhiteboxMetrix/Services/OrderService.cs",
+      "subsystem": "orders",
+      "rationale": "Checkout and loyalty ordering drive subtle side effects.",
+      "allUsesAnchorIds": ["order-internal-note-loyalty"]
+    }
+  ]
+}

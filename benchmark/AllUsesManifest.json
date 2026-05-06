@@ -1,0 +1,124 @@
+{
+  "$schema": "./all-uses-manifest.schema.json",
+  "version": 1,
+  "description": "All-uses targets: observable value flows between definition sites and their consuming sinks. Each exercisedBy lists NUnit FullName-compatible test identifiers.",
+  "assembly": "WhiteboxMetrix",
+  "uses": [
+    {
+      "id": "fuse-branch-a-z-max",
+      "relatedDefinitionId": "dataflow-fuse-z",
+      "path": "WhiteboxMetrix/Utils/DataFlowNoise.cs",
+      "useDescription": "First limb: flag && !other, z = x - y consumed as both comparison to 100 and return value (+1 when equality).",
+      "exercisedBy": [
+        "WhiteboxMetrix.Tests.AllUsesCoverageTests.DataFlowNoise_Fuse_firstBranch_zEqualsHundred_ReturnsZPlusOne",
+        "WhiteboxMetrix.Tests.AllUsesCoverageTests.DataFlowNoise_Fuse_firstBranch_zNotHundred_ReturnsZ"
+      ]
+    },
+    {
+      "id": "fuse-branch-b-w-maxValue",
+      "relatedDefinitionId": "dataflow-fuse-y-overwrite",
+      "path": "WhiteboxMetrix/Utils/DataFlowNoise.cs",
+      "useDescription": "After y rebind to b: w = y + 1 compared against maxValue(a); either return w or fall through.",
+      "exercisedBy": [
+        "WhiteboxMetrix.Tests.AllUsesCoverageTests.DataFlowNoise_Fuse_fallback_wGreaterThanCap_ReturnsW",
+        "WhiteboxMetrix.Tests.AllUsesCoverageTests.DataFlowNoise_Fuse_fallback_returnsOriginalX_sum"
+      ]
+    },
+    {
+      "id": "maxvalue-cap-branching",
+      "path": "WhiteboxMetrix/Utils/DataFlowNoise.cs",
+      "useDescription": "cap redefined per seed (1 / 0 / negative) before return.",
+      "exercisedBy": ["WhiteboxMetrix.Tests.AllUsesCoverageTests.DataFlowNoise_MaxValue_AllSeedBranches"]
+    },
+    {
+      "id": "audit-scratch-a-read",
+      "relatedDefinitionId": "audit-scratch-a",
+      "path": "WhiteboxMetrix/Utils/PricingAuditBuffer.cs",
+      "useDescription": "ScratchA after ApplyTierDiscount must equal inbound subtotal (external read/assert).",
+      "exercisedBy": ["WhiteboxMetrix.Tests.AllUsesCoverageTests.RuleEngine_AllUses_auditScratchPropagate_reads"]
+    },
+    {
+      "id": "audit-scratch-b-read",
+      "relatedDefinitionId": "audit-scratch-b",
+      "path": "WhiteboxMetrix/Utils/PricingAuditBuffer.cs",
+      "useDescription": "ScratchB consumed in assertion tying discount magnitude to buffer.",
+      "exercisedBy": ["WhiteboxMetrix.Tests.AllUsesCoverageTests.RuleEngine_AllUses_auditScratchPropagate_reads"]
+    },
+    {
+      "id": "audit-last-taxable-base-read",
+      "relatedDefinitionId": "audit-last-taxable-base",
+      "path": "WhiteboxMetrix/Utils/PricingAuditBuffer.cs",
+      "useDescription": "LastTaxableBase read after ComputeTax to validate sink population.",
+      "exercisedBy": ["WhiteboxMetrix.Tests.AllUsesCoverageTests.RuleEngine_AllUses_auditScratchPropagate_reads"]
+    },
+    {
+      "id": "round-display-step-temp-branches",
+      "relatedDefinitionId": "round-display-temp-double",
+      "path": "WhiteboxMetrix/Utils/MoneyUtils.cs",
+      "useDescription": "RoundDisplay executes both compares on derived step2 (promotion branch vs straight return).",
+      "exercisedBy": ["WhiteboxMetrix.Tests.AllUsesCoverageTests.MoneyUtils_RoundDisplay_bothPromotionBranches"]
+    },
+    {
+      "id": "rounding-jitter-buffer-overwrite",
+      "relatedDefinitionId": "rounding-jitter-unused-buffer",
+      "path": "WhiteboxMetrix/Utils/MoneyUtils.cs",
+      "useDescription": "unusedBuffer first assigned from x then overwritten after rounding path.",
+      "exercisedBy": ["WhiteboxMetrix.Tests.AllUsesCoverageTests.MoneyUtils_RoundingJitter_readsFinalRoundedPath"]
+    },
+    {
+      "id": "chain-discount-return-use",
+      "relatedDefinitionId": "chain-discount-intermediate",
+      "path": "WhiteboxMetrix/Utils/MoneyUtils.cs",
+      "useDescription": "Final sink is return c; exercised via deterministic guard against naive multiply.",
+      "exercisedBy": ["WhiteboxMetrix.Tests.AllUsesCoverageTests.MoneyUtils_ChainDiscount_usesFlooredIntermediate"]
+    },
+    {
+      "id": "buggy-threshold-predicate-outs",
+      "relatedDefinitionId": "buggy-threshold-branch",
+      "path": "WhiteboxMetrix/Utils/MoneyUtils.cs",
+      "useDescription": ">, ==, else exits each observable.",
+      "exercisedBy": ["WhiteboxMetrix.Tests.AllUsesCoverageTests.MoneyUtils_BuggyThreshold_threeOutcomes"]
+    },
+    {
+      "id": "coupon-discount-var-d-split",
+      "relatedDefinitionId": "ruleengine-coupon-discount",
+      "path": "WhiteboxMetrix/Rules/RuleEngine.cs",
+      "useDescription": "pct-clamped multiplication into d then optional loyalty halving path before RoundDisplay sink.",
+      "exercisedBy": [
+        "WhiteboxMetrix.Tests.AllUsesCoverageTests.RuleEngine_AllUses_ApplyCoupon_d_halvesWithLoyaltyWhenNotStackable",
+        "WhiteboxMetrix.Tests.AllUsesCoverageTests.RuleEngine_AllUses_ApplyCoupon_d_notHalved_whenStackableWithLoyalty"
+      ]
+    },
+    {
+      "id": "loyalty-redeem-raw-bands",
+      "relatedDefinitionId": "loyalty-redeem-raw",
+      "path": "WhiteboxMetrix/Rules/LoyaltyCalculator.cs",
+      "useDescription": "raw mutated by mid-band fudge before rounding.",
+      "exercisedBy": [
+        "WhiteboxMetrix.Tests.AllUsesCoverageTests.LoyaltyCalculator_AllUses_rawMidBandBump",
+        "WhiteboxMetrix.Tests.AllUsesCoverageTests.LoyaltyCalculator_AllUses_rawWithoutBandBump"
+      ]
+    },
+    {
+      "id": "payment-wallet-borderline-succeeds",
+      "relatedDefinitionId": "payment-wallet-borderline",
+      "path": "WhiteboxMetrix/Services/PaymentService.cs",
+      "useDescription": "Nested balance deficiency with generous subtotal path returns OK borderline message.",
+      "exercisedBy": ["WhiteboxMetrix.Tests.AllUsesCoverageTests.PaymentService_AllUses_walletBorderlineMessage"]
+    },
+    {
+      "id": "product-dynamic-months-gold-multiplier",
+      "relatedDefinitionId": "product-dynamic-months",
+      "path": "WhiteboxMetrix/Services/ProductService.cs",
+      "useDescription": "months from BillingCycleHint splits Gold quantity>1 price factor (<3 vs >=3 months).",
+      "exercisedBy": ["WhiteboxMetrix.Tests.AllUsesCoverageTests.ProductService_AllUses_monthsSplitsGoldPricing"]
+    },
+    {
+      "id": "bulk-threshold-exact-boundary",
+      "relatedDefinitionId": "bulk-at-threshold",
+      "path": "WhiteboxMetrix/Rules/BulkPricingAdjuster.cs",
+      "useDescription": "quantity == BulkThresholdUnits branch distinct from strictly above threshold.",
+      "exercisedBy": ["WhiteboxMetrix.Tests.AllUsesCoverageTests.BulkPricingAdjuster_AllUses_equalityVersusAboveThreshold"]
+    }
+  ]
+}

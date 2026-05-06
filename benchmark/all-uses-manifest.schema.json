@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/all-uses-manifest.schema.json",
+  "title": "AllUsesManifest",
+  "type": "object",
+  "required": ["version", "uses"],
+  "properties": {
+    "version": { "type": "integer" },
+    "description": { "type": "string" },
+    "assembly": { "type": "string" },
+    "uses": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "path", "useDescription", "exercisedBy"],
+        "properties": {
+          "id": { "type": "string" },
+          "relatedDefinitionId": { "type": "string" },
+          "path": { "type": "string" },
+          "useDescription": { "type": "string" },
+          "exercisedBy": {
+            "type": "array",
+            "items": { "type": "string" },
+            "minItems": 1
+          }
+        }
+      }
+    }
+  }
+}

@@ -34,4 +34,16 @@
     <ProjectReference Include="..\WhiteboxMetrix\WhiteboxMetrix.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="..\benchmark\AllUsesManifest.json" Link="AllUsesManifest.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\benchmark\CodeChurnManifest.json" Link="CodeChurnManifest.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\benchmark\AllDefinitionsManifest.json" Link="AllDefinitionsManifest.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
