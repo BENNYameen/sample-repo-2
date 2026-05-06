@@ -4,6 +4,13 @@ from __future__ import annotations
 
 import sys
 import xml.etree.ElementTree as ET
+from pathlib import Path
+
+_SCRIPTS = Path(__file__).resolve().parent
+if str(_SCRIPTS) not in sys.path:
+    sys.path.insert(0, str(_SCRIPTS))
+
+import churn_helpers  # noqa: E402 — loaded after sibling path shim for packaging-free scripts layout
 
 
 def main() -> int:
@@ -24,6 +31,14 @@ def main() -> int:
         print(f"cobertura_lines_covered={lines_covered}/{lines_valid}")
     if branches_valid:
         print(f"cobertura_branches_covered={branches_covered}/{branches_valid}")
+    bench = _SCRIPTS.parent / "benchmark"
+    churn_bundle = churn_helpers.emit_complete_churn_evaluation(
+        cobertura_path=path,
+        line_rate=lr,
+        branch_rate=br,
+        benchmark_root=bench,
+    )
+    sys.stdout.write(churn_helpers.format_churn_report(churn_bundle))
     return 0
 
 

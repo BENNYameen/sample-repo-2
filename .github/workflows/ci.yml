@@ -24,6 +24,22 @@ jobs:
       - name: Validate benchmark manifests (all-uses + churn contracts)
         run: python3 scripts/validate_benchmark_manifests.py
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Python churn classifications (pytest + coverage over scripts/)
+        run: |
+          python3 -m pip install --upgrade pip --quiet
+          python3 -m pip install pytest pytest-cov --quiet
+          cd scripts
+          python3 -m pytest test_churn_helpers.py -v \
+            --cov=churn_helpers \
+            --cov=report_cobertura_summary \
+            --cov=validate_benchmark_manifests \
+            --cov-report=term-missing \
+            --cov-fail-under=90
+
       - name: Test (Coverlet MSBuild → TestResults/coverage/coverage.cobertura.xml)
         run: dotnet test WhiteboxMetrix.sln -c Release --no-restore -v minimal
 

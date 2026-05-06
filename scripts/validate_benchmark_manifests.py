@@ -7,6 +7,12 @@ import json
 import sys
 from pathlib import Path
 
+_SCRIPTS = Path(__file__).resolve().parent
+if str(_SCRIPTS) not in sys.path:
+    sys.path.insert(0, str(_SCRIPTS))
+
+import churn_helpers  # noqa: E402
+
 
 def die(msg: str) -> None:
     print(msg, file=sys.stderr)
@@ -73,8 +79,12 @@ def validate_code_churn(data: dict, source: Path, definition_ids: set[str]) -> l
     return errs
 
 
+def _benchmark_root() -> Path:
+    return Path(__file__).resolve().parent.parent / "benchmark"
+
+
 def main() -> int:
-    root = Path(__file__).resolve().parent.parent / "benchmark"
+    root = _benchmark_root()
     if not root.is_dir():
         die(f"missing benchmark directory: {root}")
         return 2
@@ -118,6 +128,13 @@ def main() -> int:
             die(f"  - {e}")
         return 1
     print("benchmark manifests OK")
+    churn_bundle = churn_helpers.emit_complete_churn_evaluation(
+        cobertura_path=None,
+        line_rate=None,
+        branch_rate=None,
+        benchmark_root=root,
+    )
+    sys.stdout.write(churn_helpers.format_churn_report(churn_bundle))
     return 0
 
 

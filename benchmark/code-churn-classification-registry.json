@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "version": 1,
+  "description": "Maps syllabus churn classifications to executable nodes for coverage/churn dashboards (pair with scripts/churn_helpers.py).",
+
+  "classifications": {
+    "RiskBasedTestingPrioritization": {
+      "script": "scripts/churn_helpers.py",
+      "entrypoint": "risk_based_testing_prioritization"
+    },
+    "RegressionTestingFocus": {
+      "script": "scripts/churn_helpers.py",
+      "entrypoint": "regression_testing_focus"
+    },
+    "DefectPrediction": {
+      "script": "scripts/churn_helpers.py",
+      "entrypoint": "defect_prediction"
+    },
+    "TestCaseMaintenanceIdentification": {
+      "script": "scripts/churn_helpers.py",
+      "entrypoint": "test_case_maintenance_identification"
+    },
+    "ChangeImpactAnalysis": {
+      "script": "scripts/churn_helpers.py",
+      "entrypoint": "change_impact_analysis"
+    }
+  },
+
+  "orchestration": {
+    "invoked_from": ["scripts/report_cobertura_summary.py", "scripts/validate_benchmark_manifests.py"],
+    "aggregator": "scripts/churn_helpers.py:emit_complete_churn_evaluation"
+  }
+}
